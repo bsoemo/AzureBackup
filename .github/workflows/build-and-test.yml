@@ -6,6 +6,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: windows-latest
@@ -17,13 +20,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore AzureBackup.sln
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build AzureBackup.sln --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --no-build --configuration Release
+        run: dotnet test AzureBackup.sln --no-build --configuration Release
