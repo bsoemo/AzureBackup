@@ -1,0 +1,68 @@
+name: release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Calculate version
+        run: echo "VERSION=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+      - name: Restore
+        run: dotnet restore AzureBackup.sln
+
+      # Windows single-file, self-contained
+      - name: Publish win-x64
+        run: >
+          dotnet publish AzureBackup.sln
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:Version=${{ env.VERSION }}
+          -o ./publish/win-x64
+
+      # Linux single-file, self-contained
+      - name: Publish linux-x64
+        run: >
+          dotnet publish AzureBackup.sln
+          -c Release
+          -r linux-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:PublishTrimmed=true
+          -p:Version=${{ env.VERSION }}
+          -o ./publish/linux-x64
+
+      - name: Package artifacts
+        run: |
+          mkdir -p artifacts
+          cd publish/win-x64
+          zip -r ../../artifacts/azurebackup-cli-win-x64-${{ env.VERSION }}.zip .
+          cd ../linux-x64
+          tar -czf ../../artifacts/azurebackup-cli-linux-x64-${{ env.VERSION }}.tar.gz .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          files: |
+            artifacts/azurebackup-cli-win-x64-${{ env.VERSION }}.zip
+            artifacts/azurebackup-cli-linux-x64-${{ env.VERSION }}.tar.gz
