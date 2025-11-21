@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "default": {
+    "concurrency": 4,
+    "tier": "Cool",
+    "dryRun": false
+  },
+  "jobs": [
+    {
+      "name": "Documents to Blob",
+      "source": {
+        "paths": [
+          "C:/Data/Documents"
+        ],
+        "include": ["**/*"],
+        "exclude": ["**/*.tmp", "**/~*"]
+      },
+      "tier": "Archive",
+      "destination": {
+        "type": "AzureBlob",
+        "azureBlob": {
+          "serviceUri": "https://youraccount.blob.core.windows.net/",
+          "container": "backups",
+          "prefix": "pc-01/{yyyy}/{MM}/{dd}"
+        }
+      }
+    }
+  ]
+}
